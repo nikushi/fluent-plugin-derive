@@ -2,20 +2,17 @@ class Fluent::DeriveOutput < Fluent::Output
   Fluent::Plugin.register_output('derive', self)
 
   KEY_MAX_NUM = 20
-  (1..MAPPING_MAX_NUM).each {|i| config_param "key#{i}".to_sym, :string, :default => nil }
+  (1..KEY_MAX_NUM).each {|i| config_param "key#{i}".to_sym, :string, :default => nil }
   config_param :key_pattern, :string, :default => nil
   config_param :tag, :string, :default => nil
   config_param :add_tag_prefix, :string, :default => nil
   config_param :remove_tag_prefix, :string, :default => nil
 
   # for test
-  attr_reader :keys
   attr_reader :key_pattern
-
-  def initialize
-    super
-    @prev = {}
-  end
+  attr_reader :key_pattern_adjustment
+  attr_reader :keys
+  attr_reader :prev
 
   def configure(conf)
     super
@@ -48,6 +45,9 @@ class Fluent::DeriveOutput < Fluent::Output
       else
         Proc.new {|tag| tag }
       end
+
+    @prev = {}
+    @mutex = Mutex.new
   rescue => e
     raise Fluent::ConfigError, "#{e.class} #{e.message} #{e.backtrace.first}"
   end
@@ -61,15 +61,16 @@ class Fluent::DeriveOutput < Fluent::Output
   end
 
   def emit(tag, es, chain)
+    emit_tag = @tag_proc.call(tag)
+
     if @key_pattern
       es.each do |time, record|
         record.each do |key, value|
-          next unkess key =~ @key_pattern
+          next unless key =~ @key_pattern
           prev_time, prev_value = get_prev_value(tag, key)
           unless prev_time && prev_value
             save_to_prev(time, tag, key, value)
-            record[key] = nil
-            next
+            next #discard initial record
           end
           # adjustment
           rate = (value - prev_value)/(prev_time - time)
@@ -80,15 +81,16 @@ class Fluent::DeriveOutput < Fluent::Output
           record[key] = rate
           save_to_prev(time, tag, key, value)
         end
+        Fluent::Engine.emit(emit_tag, time, record)
       end
     else #keys
       es.each do |time, record|
         @keys.each do |key, adjustment|
           next unless  value = record[key]
+          prev_time, prev_value = get_prev_value(tag, key)
           unless prev_time && prev_value
             save_to_prev(time, tag, key, value)
-            record[key] = nil
-            next
+            next #discard initial record
           end
           # adjustment
           rate = (value - prev_value)/(prev_time - time)
@@ -99,14 +101,13 @@ class Fluent::DeriveOutput < Fluent::Output
           record[key] = rate
           save_to_prev(time, tag, key, value)
         end
+        Fluent::Engine.emit(emit_tag, time, record)
       end
     end
-    emit_tag = @tag_proc.call(tag)
-    Engine.emit(emit_tag, time, record)
   end
 
   # @return [Array] time, value
-  def get_prev_record(tag, key)
+  def get_prev_value(tag, key)
     @prev["#{tag}:#{key}"] || []
   end
 
