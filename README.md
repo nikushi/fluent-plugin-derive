@@ -60,6 +60,18 @@ A pair of a field name of the input record, and to be calculated. key1 or key_pa
 
 A pair of a regular expression to specify field names of the input record, and to be calculated. key1 or key_pattern is required. `Adjustment` is optional.
 
+* tag
+
+The output tag name
+
+* add_tag_prefix
+
+Add tag prefix for output message
+
+* remove_tag_prefix
+
+Remove tag prefix for output message
+
 ## Contributing
 
 1. Fork it
