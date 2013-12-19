@@ -5,12 +5,12 @@ require 'fluent/plugin/derive/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "fluent-plugin-derive"
-  spec.version       = Fluent::Plugin::Derive::VERSION
+  spec.version       = "0.0.1"
   spec.authors       = ["Nobuhiro Nikushi"]
-  spec.email         = ["nikushi.nobuhiro@dena.jp"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
-  spec.homepage      = ""
+  spec.email         = ["deneb.ge@gmail.com"]
+  spec.description   = spec.summary
+  spec.summary       = "fluentd plugin to derive rate"
+  spec.homepage      = "https://github.com/niku4i/fluent-plugin-derive"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
