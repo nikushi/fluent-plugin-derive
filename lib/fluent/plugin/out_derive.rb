@@ -70,7 +70,8 @@ class Fluent::DeriveOutput < Fluent::Output
           prev_time, prev_value = get_prev_value(tag, key)
           unless prev_time && prev_value
             save_to_prev(time, tag, key, value)
-            next #discard initial record
+            record[key] = nil
+            next
           end
           # adjustment
           rate = (value - prev_value)/(prev_time - time)
@@ -90,7 +91,8 @@ class Fluent::DeriveOutput < Fluent::Output
           prev_time, prev_value = get_prev_value(tag, key)
           unless prev_time && prev_value
             save_to_prev(time, tag, key, value)
-            next #discard initial record
+            record[key] = nil
+            next
           end
           # adjustment
           rate = (value - prev_value)/(prev_time - time)
