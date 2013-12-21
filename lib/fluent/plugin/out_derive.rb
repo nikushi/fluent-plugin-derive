@@ -74,10 +74,7 @@ class Fluent::DeriveOutput < Fluent::Output
             next
           end
           # adjustment
-          rate = (value - prev_value)/(prev_time - time)
-          if @key_pattern_adjustment
-            rate = eval("rate #{@key_pattern_adjustment}")
-          end
+          rate = calc_rate(value, prev_value, time, prev_time, @key_pattern_adjustment)
           # Set new value
           record[key] = rate
           save_to_prev(time, tag, key, value)
@@ -95,10 +92,7 @@ class Fluent::DeriveOutput < Fluent::Output
             next
           end
           # adjustment
-          rate = (value - prev_value)/(prev_time - time)
-          if @key_pattern_adjustment
-            rate = eval("rate #{@key_pattern_adjustment}")
-          end
+          rate = calc_rate(value, prev_value, time, prev_time, adjustment)
           # Set new value
           record[key] = rate
           save_to_prev(time, tag, key, value)
@@ -121,6 +115,11 @@ class Fluent::DeriveOutput < Fluent::Output
 
   def lstrip(string, substring)
     string.index(substring) == 0 ? string[substring.size..-1] : string
+  end
+
+  def calc_rate(cur_value, prev_value, cur_time, prev_time, adjustment = nil)
+    rate = (cur_value - prev_value)/(cur_time - prev_time)
+    (adjustment) ? eval("rate #{adjustment}") : rate
   end
 
 end
