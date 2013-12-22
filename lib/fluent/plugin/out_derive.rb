@@ -74,7 +74,7 @@ class Fluent::DeriveOutput < Fluent::Output
             next
           end
           # adjustment
-          rate = calc_rate(value, prev_value, time, prev_time, @key_pattern_adjustment)
+          rate = calc_rate(tag, key, value, prev_value, time, prev_time, @key_pattern_adjustment)
           # Set new value
           record[key] = rate
           save_to_prev(time, tag, key, value)
@@ -92,7 +92,7 @@ class Fluent::DeriveOutput < Fluent::Output
             next
           end
           # adjustment
-          rate = calc_rate(value, prev_value, time, prev_time, adjustment)
+          rate = calc_rate(tag, key, value, prev_value, time, prev_time, adjustment)
           # Set new value
           record[key] = rate
           save_to_prev(time, tag, key, value)
@@ -102,6 +102,9 @@ class Fluent::DeriveOutput < Fluent::Output
     end
 
     chain.next
+  rescue => e
+    $log.warn e.message
+    $log.warn e.backtrace.join(', ')
   end
 
   # @return [Array] time, value
@@ -119,7 +122,11 @@ class Fluent::DeriveOutput < Fluent::Output
     string.index(substring) == 0 ? string[substring.size..-1] : string
   end
 
-  def calc_rate(cur_value, prev_value, cur_time, prev_time, adjustment = nil)
+  def calc_rate(tag, key, cur_value, prev_value, cur_time, prev_time, adjustment = nil)
+    if cur_time - prev_time <= 0
+      $log.warn "Could not calculate the rate. multiple input less than one second or minus delta of seconds on tag=#{tag}, key=#{key}"
+      return nil
+    end
     rate = (cur_value - prev_value)/(cur_time - prev_time)
     (adjustment) ? eval("rate #{adjustment}") : rate
   end
