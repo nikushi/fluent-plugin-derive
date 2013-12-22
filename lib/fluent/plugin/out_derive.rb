@@ -73,6 +73,7 @@ class Fluent::DeriveOutput < Fluent::Output
       es.each do |time, record|
         record.each do |key, value|
           next unless key =~ @key_pattern
+          value = value.to_i
           prev_time, prev_value = get_prev_value(tag, key)
           unless prev_time && prev_value
             save_to_prev(time, tag, key, value)
@@ -93,6 +94,7 @@ class Fluent::DeriveOutput < Fluent::Output
       es.each do |time, record|
         @keys.each do |key, adjustment|
           next unless  value = record[key]
+          value = value.to_i
           prev_time, prev_value = get_prev_value(tag, key)
           unless prev_time && prev_value
             save_to_prev(time, tag, key, value)
