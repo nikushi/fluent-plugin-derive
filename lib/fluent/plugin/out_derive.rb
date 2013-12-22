@@ -19,12 +19,14 @@ class Fluent::DeriveOutput < Fluent::Output
 
     if @key_pattern
       key_pattern, @key_pattern_adjustment = @key_pattern.split(/ +/, 2)
+      @key_pattern_adjustment = parse_adjustment(@key_pattern_adjustment)
       @key_pattern = Regexp.compile(key_pattern)
     else
       @keys = {}
       (1..KEY_MAX_NUM).each do |i|
         next unless conf["key#{i}"] 
         key, adjustment = conf["key#{i}"].split(/ +/, 2)
+        adjustment = parse_adjustment(adjustment)
         @keys[key] = adjustment
       end
     end
@@ -122,13 +124,30 @@ class Fluent::DeriveOutput < Fluent::Output
     string.index(substring) == 0 ? string[substring.size..-1] : string
   end
 
+  def parse_adjustment(str)
+    case str
+    when /^\*(\d+)$/
+      ['*', $1.to_i]
+    when /^\/(\d+)$/
+      ['/', $1.to_i]
+    else
+      nil
+    end
+  end
+
   def calc_rate(tag, key, cur_value, prev_value, cur_time, prev_time, adjustment = nil)
     if cur_time - prev_time <= 0
       $log.warn "Could not calculate the rate. multiple input less than one second or minus delta of seconds on tag=#{tag}, key=#{key}"
       return nil
     end
     rate = (cur_value - prev_value)/(cur_time - prev_time)
-    (adjustment) ? eval("rate #{adjustment}") : rate
+    if adjustment && adjustment[0] == '*'
+      rate * adjustment[1]
+    elsif adjustment && adjustment[0] == '/'
+      rate / adjustment[1]
+    else
+      rate
+    end
   end
 
 end

@@ -43,7 +43,7 @@ describe Fluent::DeriveOutput do
           tag rate
           key_pattern _count$ *1000
         ]}
-        it { subject.key_pattern_adjustment.should eq "*1000" }
+        it { subject.key_pattern_adjustment.should eq ['*', 1000] }
       end
 
       context "keys" do
@@ -62,8 +62,8 @@ describe Fluent::DeriveOutput do
           key1 foo_count *1000
           key2 bar_count /1000
         ]}
-        it { subject.keys["foo_count"].should eq '*1000' }
-        it { subject.keys["bar_count"].should eq '/1000' }
+        it { subject.keys["foo_count"].should eq ['*', 1000] }
+        it { subject.keys["bar_count"].should eq ['/', 1000] }
       end
     end
   end
