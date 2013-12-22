@@ -100,6 +100,8 @@ class Fluent::DeriveOutput < Fluent::Output
         Fluent::Engine.emit(emit_tag, time, record)
       end
     end
+
+    chain.next
   end
 
   # @return [Array] time, value
