@@ -1,6 +1,12 @@
 # fluent-plugin-derive
 
-Output the rate of the increasing/decreasing value between the last and the current, like RRDs derive.
+Calculate per second value for the increasing/decreasing value between the last and the current, like derive in RRDTool.
+
+For example, imagine interface counter values that are inputted by SNMP polling, What we want to know is essentially the bps not the raw value. By this plug-in, the last inputted values of the specific keys and time are cached, and the per second rate for each key are culculated and re-emitted when the next record is inputted.
+
+Note that Fluentd does not guarantee the order of arrival of messages, it may not be able to calculate accurately if the messages which are tagged with same name are inputted at short intervals. So DO NOT USE this plugin in that case.
+
+I am using the derive plugin in combination with [fluent-plugin-snmp](https://github.com/iij/fluent-plugin-snmp).
 
 ## Configuration
 
@@ -15,17 +21,21 @@ Output the rate of the increasing/decreasing value between the last and the curr
 
 Assuming following inputs are coming:
 
-    2013-12-19 20:01:00 +0900 foo.bar: {"foo_count": 100, "bar_count": 200}
-    2013-12-19 20:02:00 +0900 foo.bar: {"foo_count": 700, "bar_count": 1400}
+    2013-12-19 20:01:00 +0900 foo.bar: {"foo_count":  100, "bar_count":  200}
+    2013-12-19 20:02:00 +0900 foo.bar: {"foo_count":  700, "bar_count": 1400}
+    2013-12-19 20:03:10 +0900 foo.bar: {"foo_count":  700, "bar_count": 1470}
+    2013-12-19 20:04:10 +0900 foo.bar: {"foo_count": 1300, "bar_count":  870}
 
 then output becomes as below:
 
-    2013-12-19 20:02:01 +0900 derive.foo.bar: {"foo_count": 10, "bar_count": 20}
+    2013-12-19 20:01:00 +0900 derive.foo.bar: {"foo_count": nil, "bar_count": nil}
+    2013-12-19 20:02:00 +0900 derive.foo.bar: {"foo_count":  10, "bar_count":  20}
+    2013-12-19 20:03:10 +0900 derive.foo.bar: {"foo_count":   0, "bar_count":   1}
+    2013-12-19 20:04:10 +0900 derive.foo.bar: {"foo_count":  10, "bar_count": -10}
 
 Cacled as a per sec rate. See below how calced.
 
     (700/100)/(20:02:00 - 20:01:00)  => 10
-    (1400/200)/(20:02:00 - 20:01:00) => 20
 
 ### Example 2
 
@@ -38,22 +48,27 @@ Cacled as a per sec rate. See below how calced.
 
 Assuming following inputs are coming:
 
-    2013-12-19 20:01:00 +0900 foo.bar: {"foo_count": 100, "bar_count": 200}
-    2013-12-19 20:02:00 +0900 foo.bar: {"foo_count": 700, "bar_count": 1400}
+    2013-12-19 20:01:00 +0900 foo.bar: {"foo_count":  100, "bar_count":  200}
+    2013-12-19 20:02:00 +0900 foo.bar: {"foo_count":  700, "bar_count": 1400}
+    2013-12-19 20:03:10 +0900 foo.bar: {"foo_count":  700, "bar_count": 1470}
+    2013-12-19 20:04:10 +0900 foo.bar: {"foo_count": 1300, "bar_count":  870}
 
 then output becomes as below:
 
-    2013-12-19 20:02:01 +0900 derive.foo.bar: {"foo_count": 10000, "bar_count": 20000}
+    2013-12-19 20:01:00 +0900 derive.foo.bar: {"foo_count":   nil, "bar_count":    nil}
+    2013-12-19 20:02:00 +0900 derive.foo.bar: {"foo_count": 10000, "bar_count":  20000}
+    2013-12-19 20:03:10 +0900 derive.foo.bar: {"foo_count":     0, "bar_count":   1000}
+    2013-12-19 20:04:10 +0900 derive.foo.bar: {"foo_count": 10000, "bar_count": -10000}
 
 ## Paramteres
 * key[1-20] [Adjustment]
 
-A pair of a field name of the input record, and to be calculated. key1 or key_pattern is required. `Adjustment` is optional, for compute rate.
+A pair of a field name of the input record, and to be calculated. key1 or key_pattern is required. `Adjustment` is optional.
 
-`Adjustment` is like follow:
+Use `Adjustment` like follow:
 
     key1 foo_count *3600000 => output the rate as K/h
-    key1 foo_count *8       => shift unit (e.g. Bps to bps)
+    key1 foo_count *8       => shift unit (e.g. Byteps to bps)
     key1 foo_count /1000    => shift unit (e.g. M to K)
 
 * key_pattern [Adjustment]
