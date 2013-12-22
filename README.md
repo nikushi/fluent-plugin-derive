@@ -87,6 +87,14 @@ Add tag prefix for output message
 
 Remove tag prefix for output message
 
+* min
+
+Define the expected range value. If min and/or max are specified any value outside the defined range will be truncated.
+
+* max
+
+Define the expected range value. If min and/or max are specified any value outside the defined range will be truncated.
+
 ## Contributing
 
 1. Fork it

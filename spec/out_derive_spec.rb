@@ -15,6 +15,24 @@ describe Fluent::DeriveOutput do
       context 'none of tag, add_tag_prefix, or remove_tag_prefix are included' do
         let(:config) { "key1 foo" }
       end
+      context 'min greater than max' do
+        let(:config) {%[
+          tag rate
+          key1 foo_count
+          min 1
+          max 0
+        ]}
+        it { expect { driver }.to raise_error(Fluent::ConfigError) }
+      end
+      context 'min == max' do
+        let(:config) {%[
+          tag rate
+          key1 foo_count
+          min 1
+          max 1
+        ]}
+        it { expect { driver }.to raise_error(Fluent::ConfigError) }
+      end
     end
 
     describe 'good configuration' do
@@ -28,6 +46,8 @@ describe Fluent::DeriveOutput do
         its(:tag) { should eq "rate" }
         its(:add_tag_prefix) { should be_nil }
         its(:remove_tag_prefix) { should be_nil }
+        its(:min) { should be_nil }
+        its(:max) { should be_nil }
       end
 
       context "key_pattern" do
@@ -65,6 +85,17 @@ describe Fluent::DeriveOutput do
         it { subject.keys["foo_count"].should eq ['*', 1000] }
         it { subject.keys["bar_count"].should eq ['/', 1000] }
       end
+
+      context 'min < max' do
+        let(:config) {%[
+          tag rate
+          key1 foo_count
+          min 0
+          max 1
+        ]}
+        it { expect { driver }.not_to raise_error(Fluent::ConfigError) }
+      end
+ 
     end
   end
 
@@ -127,6 +158,25 @@ describe Fluent::DeriveOutput do
         it {
           driver.emits[0].should == ['rate', time, {'foo_count' => nil, 'bar_count' => nil, 'baz_count' => nil}]
           driver.emits[1].should == ['rate', time + 60, {'foo_count' => 10, 'bar_count' => 20, 'baz_count' => 10000}]
+        }
+      end
+
+      context 'min/max' do
+        let(:config) { %[ 
+          tag rate
+          key1 foo_count
+          key2 bar_count *1000000
+          min 0
+          max 1000
+        ]}
+        before do
+          driver.run {
+            driver.emit({'foo_count'=> 100, 'bar_count'=>0}, time) 
+            driver.emit({'foo_count'=> 0,   'bar_count'=>6000}, time + 60) 
+          }
+        end
+        it {
+          driver.emits[1].should == ['rate', time + 60, {'foo_count' => 0, 'bar_count' => 1000}]
         }
       end
 
@@ -213,6 +263,25 @@ describe Fluent::DeriveOutput do
           driver.emits[1].should == ['rate', time + 60, {'foo_count' => 1, 'bar_count' => 2, 'baz_count' => 1}]
         }
       end
+
+      context 'min/max' do
+        let(:config) { %[ 
+          tag rate
+          key_pattern .*_count$ *10000
+          min 0
+          max 1000
+        ]}
+        before do
+          driver.run {
+            driver.emit({'foo_count'=> 100, 'bar_count'=>0}, time) 
+            driver.emit({'foo_count'=> 0,   'bar_count'=>6000}, time + 60) 
+          }
+        end
+        it {
+          driver.emits[1].should == ['rate', time + 60, {'foo_count' => 0, 'bar_count' => 1000}]
+        }
+      end
+
 
     end
 

@@ -8,6 +8,8 @@ config = %[
   add_tag_prefix hoge
   key1 foooooo_baaaaaa_count *1000
   key2 hogeeee_fugaaaa_count *1500
+  min 0
+  max 1000000000
 ]
 
 time = Time.now.to_i
@@ -41,3 +43,7 @@ end
 # key1 with adjustment and key2 with adjustment
 #              user     system      total        real
 #                        2.630000   0.030000   2.660000 (  3.180860)
+#
+# key1 with adjustment, key2 with adjustment, min and max
+#              user     system      total        real
+#                        2.650000   0.040000   2.690000 (  3.188757)

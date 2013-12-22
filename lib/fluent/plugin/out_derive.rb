@@ -7,6 +7,8 @@ class Fluent::DeriveOutput < Fluent::Output
   config_param :tag, :string, :default => nil
   config_param :add_tag_prefix, :string, :default => nil
   config_param :remove_tag_prefix, :string, :default => nil
+  config_param :min, :integer, :default => nil
+  config_param :max, :integer, :default => nil
 
   # for test
   attr_reader :key_pattern
@@ -48,6 +50,8 @@ class Fluent::DeriveOutput < Fluent::Output
         Proc.new {|tag| tag }
       end
 
+    raise Fluent::ConfigError, "`max` must be greater than `min`" if (@min && @max && @min >= @max)
+
     @prev = {}
     @mutex = Mutex.new
   rescue => e
@@ -77,6 +81,8 @@ class Fluent::DeriveOutput < Fluent::Output
           end
           # adjustment
           rate = calc_rate(tag, key, value, prev_value, time, prev_time, @key_pattern_adjustment)
+          rate = truncate_min(rate, @min) if @min
+          rate = truncate_max(rate, @max) if @max
           # Set new value
           record[key] = rate
           save_to_prev(time, tag, key, value)
@@ -95,6 +101,8 @@ class Fluent::DeriveOutput < Fluent::Output
           end
           # adjustment
           rate = calc_rate(tag, key, value, prev_value, time, prev_time, adjustment)
+          rate = truncate_min(rate, @min) if @min
+          rate = truncate_max(rate, @max) if @max
           # Set new value
           record[key] = rate
           save_to_prev(time, tag, key, value)
@@ -149,6 +157,17 @@ class Fluent::DeriveOutput < Fluent::Output
       rate
     end
   end
+
+  def truncate_min(value, min)
+    return nil unless value
+    (value < min) ? min : value
+  end
+
+  def truncate_max(value, max)
+    return nil unless value
+    (value > max) ? max : value
+  end
+
 
 end
 
