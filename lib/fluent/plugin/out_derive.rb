@@ -1,4 +1,9 @@
 class Fluent::DeriveOutput < Fluent::Output
+  # Define `log` method for v0.10.42 or earlier
+  unless method_defined?(:log)
+    define_method("log") { $log }
+  end
+
   Fluent::Plugin.register_output('derive', self)
 
   KEY_MAX_NUM = 20
@@ -115,8 +120,8 @@ class Fluent::DeriveOutput < Fluent::Output
 
     chain.next
   rescue => e
-    $log.warn e.message
-    $log.warn e.backtrace.join(', ')
+    log.warn e.message
+    log.warn e.backtrace.join(', ')
   end
 
   # @return [Array] time, value
@@ -147,7 +152,7 @@ class Fluent::DeriveOutput < Fluent::Output
 
   def calc_rate(tag, key, cur_value, prev_value, cur_time, prev_time, adjustment = nil)
     if cur_time - prev_time <= 0
-      $log.warn "Could not calculate the rate. multiple input less than one second or minus delta of seconds on tag=#{tag}, key=#{key}"
+      log.warn "Could not calculate the rate. multiple input less than one second or minus delta of seconds on tag=#{tag}, key=#{key}"
       return nil
     end
     rate = (cur_value - prev_value)/(cur_time - prev_time)

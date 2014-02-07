@@ -284,6 +284,42 @@ describe Fluent::DeriveOutput do
 
 
     end
-
   end
+
+  describe 'test log' do
+    let(:log) { driver.instance.log }
+    let(:base_config) { %[
+      tag rate
+      key1 foo
+    ] }
+ 
+    def capture_log(log)
+      tmp = log.instance_variable_get(:@out)
+      out = StringIO.new
+      log.instance_variable_set(:@out, out)
+      yield log
+      return out.string
+    ensure
+      # Set back original instance to @out
+      log.instance_variable_set(:@out, tmp)
+    end
+
+    if Fluent::VERSION >= "0.10.43"
+      context "log_level info" do
+        let(:config) { base_config + %[log_level info] }
+
+        it "should not contain debug level" do
+          capture_log(log) {|log| log.debug "foobar" }.should == ""
+        end
+      end
+    end
+
+    context "log" do
+      let(:config) { base_config }
+      it "should work" do
+        capture_log(log) {|log| log.info "foobar" }.should include("foobar")
+      end
+    end
+  end
+
 end
