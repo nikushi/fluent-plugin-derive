@@ -1,0 +1,8 @@
+source 'https://rubygems.org'
+
+# fluentd 0.10.43 or later supports log_level configuration attribute.
+# This tests lt 0.10.43 on travis ci.
+gem 'fluentd', '= 0.10.42'
+
+# Specify your gem's dependencies in fluent-plugin-derive.gemspec
+gemspec
