@@ -1,4 +1,4 @@
-# fluent-plugin-derive
+# fluent-plugin-derive, a plugin for [Fluentd](http://fluentd.org)
 
 Calculate per second value for the increasing/decreasing value between the last and the current, like derive in RRDTool.
 
