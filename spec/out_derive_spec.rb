@@ -307,17 +307,20 @@ describe Fluent::DeriveOutput do
     if Fluent::VERSION >= "0.10.43"
       context "log_level info" do
         let(:config) { base_config + %[log_level info] }
+        subject { Fluent::VERSION <= "0.10.46" ? capture_log(log) {|log| log.debug "foobar" } : log.tap{|log| log.debug "foobar" }.logs }
 
         it "should not contain debug level" do
-          capture_log(log) {|log| log.debug "foobar" }.should == ""
+          should be_empty
         end
       end
     end
 
     context "log" do
       let(:config) { base_config }
+      subject { Fluent::VERSION <= "0.10.46" ? capture_log(log) {|log| log.debug "foobar" } : log.tap{|log| log.debug "foobar" }.logs.first }
+
       it "should work" do
-        capture_log(log) {|log| log.info "foobar" }.should include("foobar")
+        should include("foobar")
       end
     end
   end
