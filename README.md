@@ -95,6 +95,10 @@ Define the expected range value. If min and/or max are specified any value outsi
 
 Define the expected range value. If min and/or max are specified any value outside the defined range will be truncated.
 
+* interval_division
+
+Optional. Divide the incleased value by interval time before output. The default is `true`. Set `false` for disable dividing.
+
 ## Contributing
 
 1. Fork it
