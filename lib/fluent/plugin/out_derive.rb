@@ -14,6 +14,7 @@ class Fluent::DeriveOutput < Fluent::Output
   config_param :remove_tag_prefix, :string, :default => nil
   config_param :min, :integer, :default => nil
   config_param :max, :integer, :default => nil
+  config_param :time_unit_division, :bool, :default => true
 
   # for test
   attr_reader :key_pattern
@@ -155,7 +156,11 @@ class Fluent::DeriveOutput < Fluent::Output
       log.warn "Could not calculate the rate. multiple input less than one second or minus delta of seconds on tag=#{tag}, key=#{key}"
       return nil
     end
-    rate = (cur_value - prev_value)/(cur_time - prev_time)
+    if @time_unit_division
+      rate = (cur_value - prev_value)/(cur_time - prev_time)
+    else
+      rate = cur_value - prev_value
+    end
     if adjustment && adjustment[0] == '*'
       rate * adjustment[1]
     elsif adjustment && adjustment[0] == '/'

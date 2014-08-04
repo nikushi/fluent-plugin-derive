@@ -282,6 +282,22 @@ describe Fluent::DeriveOutput do
         }
       end
 
+      context 'time_unit_division false' do
+        let(:config) { %[
+          tag rate
+          key1 foo
+          time_unit_division false
+        ]}
+        before do
+          driver.run {
+            driver.emit({'foo'=> 100}, time)
+            driver.emit({'foo'=> 700}, time + 60)
+          }
+        end
+        it {
+          driver.emits[1].should == ['rate', time + 60, {'foo' => 600}]
+        }
+      end
 
     end
   end
