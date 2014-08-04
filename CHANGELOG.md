@@ -1,3 +1,9 @@
+# 0.0.3 (2014/08/04)
+
+Enhancement:
+
+* time_unit_division option to disable divinding by unit time. Thanks @avvmoto! 
+
 # 0.0.2 (2014/02/07)
 
 Enhancement:
