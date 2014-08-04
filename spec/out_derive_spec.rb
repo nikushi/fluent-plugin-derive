@@ -282,11 +282,11 @@ describe Fluent::DeriveOutput do
         }
       end
 
-      context 'no interval_division' do
+      context 'time_unit_division false' do
         let(:config) { %[
           tag rate
           key1 foo
-          interval_division false
+          time_unit_division false
         ]}
         before do
           driver.run {
