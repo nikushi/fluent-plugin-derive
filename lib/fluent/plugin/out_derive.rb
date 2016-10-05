@@ -157,9 +157,9 @@ class Fluent::DeriveOutput < Fluent::Output
       return nil
     end
     if @time_unit_division
-      rate = (cur_value - prev_value)/(cur_time - prev_time)
+      rate = _calc_rate(cur_value , prev_value)/(cur_time - prev_time)
     else
-      rate = cur_value - prev_value
+      rate = _calc_rate(cur_value , prev_value)
     end
     if adjustment && adjustment[0] == '*'
       rate * adjustment[1]
@@ -168,6 +168,15 @@ class Fluent::DeriveOutput < Fluent::Output
     else
       rate
     end
+  end
+
+  def _calc_rate(cur_value, prev_value)
+      rate = cur_value - prev_value
+      if rate < 0
+          rate += (1 << 32 - 1)
+      if rate < 0
+          rate += (1 << 64 - 1 << 32 )
+      rate
   end
 
   def truncate_min(value, min)
