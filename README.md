@@ -99,6 +99,10 @@ Define the expected range value. If min and/or max are specified any value outsi
 
 Optional. Divide the incleased value by interval time before output. The default is `true`. Set `false` for disable dividing.
 
+* counter_mode
+
+Optional. Use RRD's counter mode. The default is `false`. Set `true` for use RRD's counter.
+
 ## Contributing
 
 1. Fork it

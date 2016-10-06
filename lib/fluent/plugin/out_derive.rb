@@ -15,6 +15,7 @@ class Fluent::DeriveOutput < Fluent::Output
   config_param :min, :integer, :default => nil
   config_param :max, :integer, :default => nil
   config_param :time_unit_division, :bool, :default => true
+  config_param :counter_mode, :bool, :default => false
 
   # for test
   attr_reader :key_pattern
@@ -171,12 +172,14 @@ class Fluent::DeriveOutput < Fluent::Output
   end
 
   def _calc_rate(cur_value, prev_value)
-      rate = cur_value - prev_value
+    rate = cur_value - prev_value
+    if @counter_mode
       if rate < 0
-          rate += (1 << 32 - 1)
+        rate += (1 << 32 - 1)
       if rate < 0
-          rate += (1 << 64 - 1 << 32 )
-      rate
+        rate += (1 << 64 - 1 << 32 )
+    end
+    rate
   end
 
   def truncate_min(value, min)
