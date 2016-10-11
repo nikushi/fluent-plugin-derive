@@ -313,7 +313,7 @@ describe Fluent::DeriveOutput do
                   }
         end
         it {
-                driver.emits[1].should == ['rate', time + 60, {'foo'=> 101}]
+                driver.emits[1].should == ['rate', time + 60, {'foo'=> 100}]
         }
       end
 
@@ -348,7 +348,7 @@ describe Fluent::DeriveOutput do
                   }
         end
         it {
-                driver.emits[1].should == ['rate', time + 60, {'foo'=> 101}]
+                driver.emits[1].should == ['rate', time + 60, {'foo'=> 100}]
         }
       end
 
