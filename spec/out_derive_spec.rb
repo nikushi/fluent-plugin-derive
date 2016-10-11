@@ -299,6 +299,77 @@ describe Fluent::DeriveOutput do
         }
       end
 
+      context 'counter_mode true 32bit' do
+        let(:config) { %[
+          counter_mode true
+          tag rate
+          key1 foo
+          time_unit_division false
+        ]}
+        before do
+          driver.run {
+                  driver.emit({'foo'=> 4294967295}, time)
+                  driver.emit({'foo'=> 100}, time + 60)
+                  }
+        end
+        it {
+                driver.emits[1].should == ['rate', time + 60, {'foo'=> 101}]
+        }
+      end
+
+      context 'counter_mode not set 32bit' do
+        let(:config) { %[
+          tag rate
+          key1 foo
+          time_unit_division false
+        ]}
+        before do
+          driver.run {
+                  driver.emit({'foo'=> 4294967295}, time)
+                  driver.emit({'foo'=> 100}, time + 60)
+                  }
+        end
+        it {
+                driver.emits[1].should == ['rate', time + 60, {'foo'=> -4294967195}]
+        }
+      end
+
+      context 'counter_mode true 64bit' do
+        let(:config) { %[
+          counter_mode true
+          tag rate
+          key1 foo
+          time_unit_division false
+        ]}
+        before do
+          driver.run {
+                  driver.emit({'foo'=> 18446744073709551615}, time)
+                  driver.emit({'foo'=> 100}, time + 60)
+                  }
+        end
+        it {
+                driver.emits[1].should == ['rate', time + 60, {'foo'=> 101}]
+        }
+      end
+
+      context 'counter_mode not set 64bit' do
+        let(:config) { %[
+          tag rate
+          key1 foo
+          time_unit_division false
+        ]}
+        before do
+          driver.run {
+                  driver.emit({'foo'=> 18446744073709551615}, time)
+                  driver.emit({'foo'=> 100}, time + 60)
+                  }
+        end
+        it {
+                driver.emits[1].should == ['rate', time + 60, {'foo'=> -18446744073709551515}]
+        }
+      end
+
+
     end
   end
 

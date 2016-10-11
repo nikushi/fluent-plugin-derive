@@ -175,10 +175,10 @@ class Fluent::DeriveOutput < Fluent::Output
     rate = cur_value - prev_value
     if @counter_mode
       if rate < 0
-        rate += (1 << 32 - 1)
+        rate += 2 ** 32 - 1
       end
       if rate < 0
-        rate += (1 << 64 - 1 << 32 )
+        rate += 2 ** 64 - 2 ** 32
       end
     end
     rate
