@@ -1,3 +1,9 @@
+# 0.0.4 (2016/10/11)
+
+Enhancement:
+
+* Support RRD's counter_mode optionally. Thanks @paihu.
+
 # 0.0.3 (2014/08/04)
 
 Enhancement:
