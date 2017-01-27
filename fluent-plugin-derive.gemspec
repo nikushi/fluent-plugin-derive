@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["deneb.ge@gmail.com"]
   spec.description   = spec.summary
   spec.summary       = "fluentd plugin to derive rate"
-  spec.homepage      = "https://github.com/niku4i/fluent-plugin-derive"
+  spec.homepage      = "https://github.com/nikushi/fluent-plugin-derive"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
